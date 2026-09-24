@@ -32,7 +32,6 @@
 - GitHub Actions для CI
 
 # Установка и запуск
-
 ```bash
 git clone https://github.com/r0de0-student/task_manager.git
 cd task_manager
@@ -42,7 +41,14 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+### Установка как пакета
+Проект можно установить как CLI-утилиту и вызывать командой `task`:
+```bash
+pip install -e ".[dev]"
+task add "Купить молоко" -p high
+task list --sort
 # Команды
+```
 
 ## Добавить задачу
 ```bash
