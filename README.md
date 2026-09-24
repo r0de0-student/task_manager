@@ -39,3 +39,5 @@ python main.py --help
 ```bash
 pytest -v
 ```
+## Итог:
+<img width="1485" height="932" alt="в реадми" src="https://github.com/user-attachments/assets/5a4caf20-5eac-42df-8e6d-cce5b9272dde" />
