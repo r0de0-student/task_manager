@@ -53,6 +53,7 @@ pytest -v
 
 ## Итог:
 <img width="1485" height="932" alt="в реадми" src="https://github.com/user-attachments/assets/5a4caf20-5eac-42df-8e6d-cce5b9272dde" />
+
 ## Добавление к проекту
 <img width="1244" height="842" alt="image" src="https://github.com/user-attachments/assets/17dff621-1ed1-441d-a80b-f0b99b7684a6" />
 
