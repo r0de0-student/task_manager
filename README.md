@@ -1,6 +1,8 @@
 <div align="center">
+
   ![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=for-the-badge&logo=python&logoColor=white)
   ![JSON](https://img.shields.io/badge/JSON-storage-000000?style=for-the-badge&logo=json&logoColor=white)
+
 </div>
 
 # Task Manager CLI
