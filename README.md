@@ -32,6 +32,8 @@ python main.py list
 python main.py done 1
 python main.py delete 1
 python main.py --help
+python main.py --done
+python main.py --pending
 ```
 
 ## Tests
