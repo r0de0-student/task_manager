@@ -129,7 +129,9 @@ task_manager/
 ├── requirements.txt        # зависимости для быстрой установки
 ├── CHANGELOG.md            # история версий
 ├── LICENSE                 # MIT
+├── NOTES.md                # Мои пометки
 └── README.md
+
 ```
 
 ## Разработка
