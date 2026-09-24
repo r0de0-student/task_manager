@@ -1,23 +1,31 @@
 import argparse
 import sys
-from datetime import date, datetime
+from datetime import datetime
+
+# Импорты из rich — библиотека для красивого вывода в терминале.
+# Console — основной объект для вывода. Он сам определяет, поддерживает ли
+# терминал цвета (Windows Terminal — да, старый cmd — не всегда).
+# Table — рисует красивые таблицы с рамками и выравниванием.
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
 
 from task_manager.cli import TaskManager
 from task_manager.models import Priority
 from task_manager.storage import Storage
 
+# Создаём глобальный console — через него будем выводить всё красиво.
+# Один экземпляр на всю программу — так рекомендуют авторы rich.
+console = Console()
 
-def parse_date(s: str) -> date:
-    # Кастомный валидатор для argparse. Принимает строку,
-    # возвращает объект date. Если строка не в формате — argparse
-    # поймает ошибку и покажет пользователю понятное сообщение.
+
+def parse_date(s: str):
+    # Кастомный валидатор для argparse. Принимает строку, возвращает date.
     try:
         return datetime.strptime(s, "%Y-%m-%d").date()
     except ValueError:
-        # argparse ждёт, что мы поднимем ArgumentTypeError, чтобы показать
-        # это сообщение пользователю.
         raise argparse.ArgumentTypeError(
-            f"Неверный формат даты: '{s}'. Ожидается YYYY-MM-DD, например 2025-12-31"
+            f"Неверный формат даты: '{s}'. Ожидается YYYY-MM-DD, например 2026-12-31"
         )
 
 
@@ -33,13 +41,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="medium",
         help="Приоритет задачи (по умолчанию medium)",
     )
-    # --due принимает строку, но argparse преобразует её через нашу функцию parse_date.
-    # type=parse_date — argparse вызовет parse_date(s) и подставит результат.
     p_add.add_argument(
         "--due", "-d",
         type=parse_date,
         default=None,
-        help="Дедлайн в формате YYYY-MM-DD (например, 2025-12-31)",
+        help="Дедлайн в формате YYYY-MM-DD (например, 2026-12-31)",
     )
 
     p_list = sub.add_parser("list", help="Показать задачи")
@@ -80,33 +86,79 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-PRIORITY_MARKERS = {
-    Priority.HIGH: "!!!",
-    Priority.MEDIUM: "!  ",
-    Priority.LOW: ".  ",
+# Стили rich — именованные цвета и модификаторы.
+# Можно использовать цвета по имени (red, green, yellow) или по hex (#ff0000).
+# Из модификаторов: bold, italic, underline, dim.
+PRIORITY_STYLES = {
+    Priority.HIGH: "bold red",
+    Priority.MEDIUM: "yellow",
+    Priority.LOW: "dim",
+}
+
+PRIORITY_ICONS = {
+    Priority.HIGH: "🔴",
+    Priority.MEDIUM: "🟡",
+    Priority.LOW: "🟢",
 }
 
 
-def format_due(t) -> str:
-    # Возвращает строку с дедлайном для вывода в списке.
-    # Если дедлайна нет — пустая строка.
+def make_due_cell(t) -> str:
+    # Возвращает строку с дедлайном для ячейки таблицы.
+    # Мы возвращаем markdown-подобную разметку rich — [red]...[/red],
+    # rich сам её распарсит и покрасит.
     if t.due is None:
-        return ""
+        return "[dim]—[/dim]"
     if t.is_overdue():
-        return f"  ⚠ ПРОСРОЧЕНО ({t.due})"
-    return f"  → до {t.due}"
+        return f"[bold red]⚠ {t.due}[/bold red]"
+    return f"[green]{t.due}[/green]"
 
 
 def print_tasks(tasks) -> None:
+    # Если список пуст — показываем панель вместо таблицы.
     if not tasks:
-        print("Список пуст")
+        console.print(Panel("Список пуст", style="dim", expand=False))
         return
+
+    # Table — объект таблицы. title и show_lines делают её наряднее.
+    table = Table(
+        title=f"Задачи ({len(tasks)})",
+        show_header=True,
+        header_style="bold cyan",
+        show_lines=False,
+    )
+
+    # Колонки. У каждой — имя, стиль (применяется ко всем ячейкам),
+    # justify (выравнивание), no_wrap (запрет переноса), width (ширина).
+    table.add_column("✓", justify="center", width=3)
+    table.add_column("Приоритет", justify="center", width=10)
+    table.add_column("ID", justify="right", width=4, style="dim")
+    table.add_column("Задача", style="white", no_wrap=False)
+    table.add_column("Дедлайн", justify="left", width=14)
+    table.add_column("Создана", style="dim", width=20)
+
     for t in tasks:
-        mark = "x" if t.done else " "
-        marker = PRIORITY_MARKERS[t.priority]
-        line = f"[{mark}] {marker} {t.id}. {t.title}  ({t.priority.value}, {t.created_at})"
-        line += format_due(t)
-        print(line)
+        # Статус: зелёная галочка для выполненных, пустой кружок для активных.
+        # rich понимает эмодзи и юникод-символы.
+        status = "[green]✓[/green]" if t.done else "[ ]"
+
+        # Приоритет — цветной маркер.
+        priority = f"{PRIORITY_ICONS[t.priority]} {t.priority.value}"
+        priority_styled = f"[{PRIORITY_STYLES[t.priority]}]{priority}[/{PRIORITY_STYLES[t.priority]}]"
+
+        # Стиль заголовка: выполненные задачи — зачёркнуты и потускневшие.
+        title_text = f"[strike dim]{t.title}[/strike dim]" if t.done else t.title
+
+        # add_row добавляет строку в таблицу. Значения идут в порядке колонок.
+        table.add_row(
+            status,
+            priority_styled,
+            str(t.id),
+            title_text,
+            make_due_cell(t),
+            t.created_at.replace("T", " "),
+        )
+
+    console.print(table)
 
 
 def main() -> int:
@@ -118,18 +170,15 @@ def main() -> int:
         if args.command == "add":
             priority = Priority(args.priority)
             task = tm.add(args.title, priority=priority, due=args.due)
-            info = f"Добавлено: [{task.id}] {task.title} (приоритет: {task.priority.value}"
+
+            # Панель для сообщения об успехе. expand=False — панель по ширине текста.
+            info = f"Задача [bold]#{task.id}[/bold] добавлена: [cyan]{task.title}[/cyan]"
+            info += f"\nПриоритет: {PRIORITY_ICONS[task.priority]} [bold]{task.priority.value}[/bold]"
             if task.due:
-                info += f", дедлайн: {task.due}"
-            info += ")"
-            print(info)
+                info += f"\nДедлайн: [green]{task.due}[/green]"
+            console.print(Panel(info, title="[green]✓ Успех[/green]", border_style="green", expand=False))
 
         elif args.command == "list":
-            # args.filter может быть:
-            #   None      -> показать всё
-            #   True      -> --done
-            #   False     -> --pending
-            #   "overdue" -> --overdue
             if args.filter is None:
                 tasks = tm.list()
             elif args.filter == "overdue":
@@ -144,14 +193,15 @@ def main() -> int:
 
         elif args.command == "done":
             task = tm.done(args.id)
-            print(f"Выполнено: [{task.id}] {task.title}")
+            console.print(f"[green]✓[/green] Выполнено: [strike dim]{task.title}[/strike dim]")
 
         elif args.command == "delete":
             tm.delete(args.id)
-            print(f"Удалено: id={args.id}")
+            console.print(f"[red]✗[/red] Удалено: id={args.id}")
 
     except ValueError as e:
-        print(f"Ошибка: {e}", file=sys.stderr)
+        # Ошибки выводим через console в красной панели — заметнее.
+        console.print(Panel(f"[red]{e}[/red]", title="[red]Ошибка[/red]", border_style="red", expand=False))
         return 1
 
     return 0
