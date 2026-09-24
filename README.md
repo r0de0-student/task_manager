@@ -1,7 +1,9 @@
 <div align="center">
 
+  ![Tests](https://github.com/r0de0-student/task_manager/actions/workflows/tests.yml/badge.svg)
   ![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=for-the-badge&logo=python&logoColor=white)
   ![JSON](https://img.shields.io/badge/JSON-storage-000000?style=for-the-badge&logo=json&logoColor=white)
+  ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 </div>
 
