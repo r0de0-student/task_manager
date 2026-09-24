@@ -1,5 +1,5 @@
 from typing import List
-from .models import Task
+from .models import Task, Priority, PRIORITY_ORDER
 from .storage import Storage
 
 class TaskManager:
@@ -11,9 +11,11 @@ class TaskManager:
     def _next_id(self, tasks: List[Task]) -> int:
         return max((t.id for t in tasks), default=0) + 1
 
-    def add(self, title: str) -> Task:
+    # Добавили параметр priority со значением по умолчанию MEDIUM.
+    # Если его не передать — задача создастся со средним приоритетом.
+    def add(self, title: str, priority: Priority = Priority.MEDIUM) -> Task:
         tasks = self.storage.load()
-        task = Task(id=self._next_id(tasks), title=title)
+        task = Task(id=self._next_id(tasks), title=title, priority=priority)
         tasks.append(task)  # append добавляет элемент в конец списка
         self.storage.save(tasks)
         return task  # Возвращаем созданную задачу
@@ -26,6 +28,15 @@ class TaskManager:
         # Вернуть только выполненные (done=True) или только невыполненные (done=False).
         tasks = self.storage.load()
         return [t for t in tasks if t.done == done]
+
+    def sorted_by_priority(self, tasks: List[Task] | None = None) -> List[Task]:
+        # Вернуть задачи, отсортированные по приоритету: high → medium → low
+        # Аргумент `tasks=None` — если не передали список, берём все задачи из хранилища
+        # key=lambda t: PRIORITY_ORDER[t.priority] — функция, которая для каждой задачи возвращает число (1, 2 или 3)
+        # reverse=True — от большего к меньшему (high=3 → первый).
+        if tasks is None:
+            tasks = self.storage.load()
+        return sorted(tasks, key=lambda t: PRIORITY_ORDER[t.priority], reverse=True)
 
     def done(self, task_id: int) -> Task:
         tasks = self.storage.load()

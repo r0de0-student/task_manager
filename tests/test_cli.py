@@ -2,6 +2,7 @@
 import pytest
 from task_manager.cli import TaskManager
 from task_manager.storage import Storage
+from task_manager.models import Priority
 # @pytest.fixture — это "заготовка" для теста. Убирает дублирование кода
 @pytest.fixture
 def tm(tmp_path):
@@ -47,3 +48,17 @@ def test_filter(tm):
     pending_tasks = tm.filter(False)
     assert [t.title for t in done_tasks] == ["second"]
     assert [t.title for t in pending_tasks] == ["first", "third"]
+
+def test_add_with_priority(tm):
+    task = tm.add("важное", priority=Priority.HIGH)
+    assert task.priority == Priority.HIGH
+    loaded = tm.list()[0]
+    assert loaded.priority == Priority.HIGH
+
+
+def test_sorted_by_priority(tm):
+    tm.add("низкий", priority=Priority.LOW)
+    tm.add("высокий", priority=Priority.HIGH)
+    tm.add("средний", priority=Priority.MEDIUM)
+    tasks = tm.sorted_by_priority()
+    assert [t.title for t in tasks] == ["высокий", "средний", "низкий"]
