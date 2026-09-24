@@ -1,9 +1,10 @@
 <div align="center">
 
   ![Tests](https://github.com/r0de0-student/task_manager/actions/workflows/tests.yml/badge.svg)
-  ![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=for-the-badge&logo=python&logoColor=white)
+  ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
   ![JSON](https://img.shields.io/badge/JSON-storage-000000?style=for-the-badge&logo=json&logoColor=white)
   ![pytest](https://img.shields.io/badge/pytest-16_passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)
+  ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 </div>
 
@@ -19,9 +20,9 @@
 - **Фильтры**: показать только выполненные, только активные или только просроченные
 - **Сортировка**: просроченные всплывают наверх, дальше по приоритету
 - **Сохранение** данных в JSON-файл
+- **Красивый вывод**: цветные таблицы, иконки приоритетов, зачёркнутые выполненные задачи
 - **Тесты** на pytest (16 тестов)
 - **CI/CD**: автотесты на GitHub Actions для Python 3.11, 3.12, 3.13
-- **Красивый вывод**: цветные таблицы, иконки приоритетов, зачёркнутые выполненные задачи
 
 ## Стек
 
@@ -31,27 +32,33 @@
 - `pytest` для тестов
 - GitHub Actions для CI
 
-# Установка и запуск
+## Установка и запуск
+
 ```bash
 git clone https://github.com/r0de0-student/task_manager.git
 cd task_manager
 python -m venv .venv
 # Windows:
 .venv\Scripts\activate.bat
+# macOS / Linux:
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Установка как пакета
-Проект можно установить как CLI-утилиту и вызывать командой `task`:
+## Установка как CLI-утилиты
+Проект можно установить в editable-режиме и вызывать командой task из любой папки (пока активировано виртуальное окружение):
+
 ```bash
 pip install -e ".[dev]"
 task add "Купить молоко" -p high
 task list --sort
+task done 1
 ```
 
 # Команды
 
 ## Добавить задачу
+
 ```bash
 # Простая задача
 python main.py add "Купить молоко"
@@ -98,8 +105,84 @@ python main.py list --help
 pytest -v
 ```
 
-# Пример вывода
+# Демонстрация
+
 <img width="746" height="904" alt="2026-09-24_22-21-43" src="https://github.com/user-attachments/assets/80a421ea-1631-45b2-819f-79543e3f1fd0" />
 
+## Структура проекта
+```bash
+task_manager/
+├── .github/
+│   └── workflows/
+│       └── tests.yml       # CI: автотесты при push
+├── task_manager/           # пакет с логикой
+│   ├── __init__.py
+│   ├── models.py           # модель Task, Priority, проверка просрочки
+│   ├── storage.py          # чтение/запись JSON
+│   └── cli.py              # бизнес-логика команд
+├── tests/                  # тесты pytest
+│   ├── test_cli.py
+│   └── test_storage.py
+├── main.py                 # точка входа, CLI через argparse
+├── conftest.py             # конфигурация pytest
+├── pyproject.toml          # метаданные пакета и зависимости
+├── requirements.txt        # зависимости для быстрой установки
+├── CHANGELOG.md            # история версий
+├── LICENSE                 # MIT
+└── README.md
+```
 
+## Разработка
+```bash
+# Клонировать
+git clone https://github.com/r0de0-student/task_manager.git
+cd task_manager
+# Виртуальное окружение
+python -m venv .venv
+.venv\Scripts\activate.bat  # Windows
+# Установить с dev-зависимостями
+pip install -e ".[dev]"
+# Прогнать тесты
+pytest -v
+```
 
+# Лицензия
+MIT — см. файл LICENSE.
+
+# Changelog
+Историю изменений см. в CHANGELOG.md.
+## Что изменилось
+```bash
+| Было | Стало |
+|---|---|
+| `# Установка и запуск` (H1) | `## Установка и запуск` (H2) |
+| `# Команды` (H1) | `## Команды` (H2) |
+| Python 3.14 в бейдже | Python 3.11+ (соответствует CI) |
+| Не было бейджа License | Добавлен бейдж MIT |
+| Не было структуры | Добавлен раздел «Структура проекта» |
+| Не было разработки | Добавлен раздел «Разработка» |
+| Не было ссылок на лицензию и CHANGELOG | Добавлены в конце |
+| «Пример вывода» | «Демонстрация» — понятнее |
+```
+
+## Что делать
+```bash
+1. Замени `README.md` целиком.
+2. Коммит и push:
+   ```powershell
+   git add README.md
+   git commit -m "docs: improve README structure"
+   git pull --rebase origin main
+   git push
+```
+
+## Обратная связь
+
+Проект сделан в учебных целях, но я старался сделать его максимально приближенным к реальному production-коду.
+
+Буду рад:
+- ⭐ Если понравился проект — поставь звезду.
+- 🐛 Если нашёл баг — открой [issue](https://github.com/r0de0-student/task_manager/issues).
+- 💡 Если есть идеи — пиши в [discussions](https://github.com/r0de0-student/task_manager/discussions) или создавай pull request.
+
+Спасибо, что заглянул!
