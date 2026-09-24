@@ -47,8 +47,9 @@ pip install -r requirements.txt
 pip install -e ".[dev]"
 task add "Купить молоко" -p high
 task list --sort
-# Команды
 ```
+
+# Команды
 
 ## Добавить задачу
 ```bash
