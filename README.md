@@ -21,11 +21,13 @@
 - **Сохранение** данных в JSON-файл
 - **Тесты** на pytest (16 тестов)
 - **CI/CD**: автотесты на GitHub Actions для Python 3.11, 3.12, 3.13
+- **Красивый вывод**: цветные таблицы, иконки приоритетов, зачёркнутые выполненные задачи
 
 ## Стек
 
 - Python 3.11+
 - Стандартные библиотеки: `argparse`, `json`, `pathlib`, `dataclasses`, `datetime`, `enum`
+- [`rich`](https://github.com/Textualize/rich) — красивый вывод в терминале
 - `pytest` для тестов
 - GitHub Actions для CI
 
@@ -90,15 +92,7 @@ pytest -v
 ```
 
 # Пример вывода
-```bash
-$ python main.py list --sort
-[ ] .   3. Просроченная задача  (low, 2026-09-24T18:09:42)  ⚠ ПРОСРОЧЕНО (2020-01-01)
-[ ] !!! 1. Сдать отчёт          (high, 2026-09-24T18:09:30)  ⚠ ПРОСРОЧЕНО (2025-12-31)
-[ ] !   2. Помыть посуду        (medium, 2026-09-24T18:09:37)
-[ ] !!! 4. Оплатить счета       (high, 2026-09-24T18:12:01)  → до 2026-12-31
-```
+<img width="746" height="904" alt="2026-09-24_22-21-43" src="https://github.com/user-attachments/assets/80a421ea-1631-45b2-819f-79543e3f1fd0" />
 
-# Демонстрация
-<img width="941" height="799" alt="Снимок экрана 2026-09-24 181058" src="https://github.com/user-attachments/assets/425bd7e2-74eb-4eff-ac87-955c8cb99c0a" />
 
 
