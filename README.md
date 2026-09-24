@@ -35,18 +35,21 @@ pip install -r requirements.txt
 
 ```bash
 python main.py add "Купить молоко"
+python main.py add "Купить молоко" -p high
+python main.py add "Купить молоко" -p low
 python main.py list
+python main.py list --sort
 python main.py done 1
 python main.py delete 1
 python main.py --help
 python main.py --done
 python main.py --pending
 ```
-
 ## Tests
 
 ```bash
 pytest -v
 ```
+
 ## Итог:
 <img width="1485" height="932" alt="в реадми" src="https://github.com/user-attachments/assets/5a4caf20-5eac-42df-8e6d-cce5b9272dde" />
