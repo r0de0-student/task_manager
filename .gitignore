@@ -1,0 +1,9 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+tasks.json
+.idea/
+.DS_Store
+Thumbs.db
