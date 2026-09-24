@@ -35,3 +35,15 @@ def test_delete(tm):
 def test_delete_missing(tm):
     with pytest.raises(ValueError):
         tm.delete(999)
+
+def test_filter(tm):
+# filter(True) возвращает только выполненные,
+# filter(False) — только активные
+    tm.add("first")
+    tm.add("second")
+    tm.add("third")
+    tm.done(2)  # отмечаем "second" выполненной
+    done_tasks = tm.filter(True)
+    pending_tasks = tm.filter(False)
+    assert [t.title for t in done_tasks] == ["second"]
+    assert [t.title for t in pending_tasks] == ["first", "third"]

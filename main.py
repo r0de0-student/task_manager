@@ -12,7 +12,25 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     p_add = sub.add_parser("add", help="Добавить задачу")
     p_add.add_argument("title", help="Текст задачи")
-    sub.add_parser("list", help="Показать задачи")
+    p_list = sub.add_parser("list", help="Показать задачи")
+    # Если пользователь напишет `list --done --pending`, будет ошибка.
+    group = p_list.add_mutually_exclusive_group()
+    # action="store_const" — при указании флага в переменную filter запишется
+    # константа (True или False), а не строка
+    group.add_argument(
+        "--done",
+        dest="filter",
+        action="store_const",
+        const=True,
+        help="Показать только выполненные задачи",
+    )
+    group.add_argument(
+        "--pending",
+        dest="filter",
+        action="store_const",
+        const=False,
+        help="Показать только невыполненные задачи",
+    )
     p_done = sub.add_parser("done", help="Отметить выполненной")
     p_done.add_argument("id", type=int)
     p_del = sub.add_parser("delete", help="Удалить задачу")
@@ -30,7 +48,14 @@ def main() -> int:
             task = tm.add(args.title)
             print(f"Добавлено: [{task.id}] {task.title}")
         elif args.command == "list":
-            tasks = tm.list()
+            if args.filter is None:
+                # args.filter может быть:
+                #   None  -> пользователь не указал ничего -> показать всё
+                #   True  -> указал --done
+                #   False -> указал --pending
+                tasks = tm.list()
+            else:
+                tasks = tm.filter(args.filter)
             if not tasks:
                 print("Список пуст")
                 return 0

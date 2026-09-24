@@ -22,6 +22,11 @@ class TaskManager:
         # Просто делегируем загрузку хранилищу.
         return self.storage.load()
 
+    def filter(self, done: bool) -> List[Task]:
+        # Вернуть только выполненные (done=True) или только невыполненные (done=False).
+        tasks = self.storage.load()
+        return [t for t in tasks if t.done == done]
+
     def done(self, task_id: int) -> Task:
         tasks = self.storage.load()
         for t in tasks:
