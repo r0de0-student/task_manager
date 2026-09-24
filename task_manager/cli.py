@@ -1,42 +1,71 @@
-from typing import List
+from typing import List, Optional
+from datetime import date
+
 from .models import Task, Priority, PRIORITY_ORDER
 from .storage import Storage
 
+
 class TaskManager:
     def __init__(self, storage: Storage):
-        # Композиция: TaskManager использует Storage, но не наследуется от него, такой подход называется "внедрение зависимости" (dependency injection)
-        # Плюс: легко подменить Storage на другое хранилище (например, БД)
+        # Композиция: TaskManager использует Storage, но не наследуется от него,
+        # такой подход называется "внедрение зависимости" (dependency injection).
+        # Плюс: легко подменить Storage на другое хранилище (например, БД).
         self.storage = storage
 
     def _next_id(self, tasks: List[Task]) -> int:
         return max((t.id for t in tasks), default=0) + 1
 
-    # Добавили параметр priority со значением по умолчанию MEDIUM.
-    # Если его не передать — задача создастся со средним приоритетом.
-    def add(self, title: str, priority: Priority = Priority.MEDIUM) -> Task:
+    # Добавили параметр due — опциональный. Если None, задача без дедлайна.
+    def add(
+        self,
+        title: str,
+        priority: Priority = Priority.MEDIUM,
+        due: Optional[date] = None,
+    ) -> Task:
         tasks = self.storage.load()
-        task = Task(id=self._next_id(tasks), title=title, priority=priority)
-        tasks.append(task)  # append добавляет элемент в конец списка
+        task = Task(id=self._next_id(tasks), title=title, priority=priority, due=due)
+        tasks.append(task)
         self.storage.save(tasks)
-        return task  # Возвращаем созданную задачу
+        return task
 
     def list(self) -> List[Task]:
-        # Просто делегируем загрузку хранилищу.
         return self.storage.load()
 
     def filter(self, done: bool) -> List[Task]:
-        # Вернуть только выполненные (done=True) или только невыполненные (done=False).
         tasks = self.storage.load()
         return [t for t in tasks if t.done == done]
 
+    def filter_overdue(self) -> List[Task]:
+        # Задачи, у которых is_overdue() возвращает True.
+        # Метод-предикат работает как условие в списковом включении.
+        tasks = self.storage.load()
+        return [t for t in tasks if t.is_overdue()]
+
     def sorted_by_priority(self, tasks: List[Task] | None = None) -> List[Task]:
-        # Вернуть задачи, отсортированные по приоритету: high → medium → low
-        # Аргумент `tasks=None` — если не передали список, берём все задачи из хранилища
-        # key=lambda t: PRIORITY_ORDER[t.priority] — функция, которая для каждой задачи возвращает число (1, 2 или 3)
-        # reverse=True — от большего к меньшему (high=3 → первый).
+        # Сортировка: сначала просроченные (по дате дедлайна), потом по приоритету.
+        #
+        # key — функция, возвращающая кортеж. sorted сравнивает кортежи по
+        # первому элементу, потом по второму, и так далее.
+        #
+        # Первый элемент: 0 для просроченных, 1 для остальных.
+        #   → просроченные всегда вверху.
+        # Второй элемент: для просроченных — дата дедлайна (чем раньше, тем выше),
+        #   для остальных — инверсия приоритета (3, 2, 1, чтобы high был первым).
         if tasks is None:
             tasks = self.storage.load()
-        return sorted(tasks, key=lambda t: PRIORITY_ORDER[t.priority], reverse=True)
+
+        def sort_key(t: Task):
+            overdue_priority = 0 if t.is_overdue() else 1
+            # date.min — самая ранняя возможная дата. Нужна как "заглушка"
+            # для задач без дедлайна, чтобы они не ломали сортировку.
+            due_for_sort = t.due if t.due else date.max
+            return (
+                overdue_priority,
+                due_for_sort,
+                -PRIORITY_ORDER[t.priority],
+            )
+
+        return sorted(tasks, key=sort_key)
 
     def done(self, task_id: int) -> Task:
         tasks = self.storage.load()
@@ -45,14 +74,11 @@ class TaskManager:
                 t.done = True
                 self.storage.save(tasks)
                 return t
-        # Если цикл закончился, а мы не вышли через return — задачи нет
         raise ValueError(f"Задача с id={task_id} не найдена")
 
     def delete(self, task_id: int) -> None:
         tasks = self.storage.load()
-        # Списковое включение: оставляем все задачи, кроме той, что удаляем
         new_tasks = [t for t in tasks if t.id != task_id]
-        # Если длина не изменилась — значит, задачи с таким id не было
         if len(new_tasks) == len(tasks):
             raise ValueError(f"Задача с id={task_id} не найдена")
         self.storage.save(new_tasks)
